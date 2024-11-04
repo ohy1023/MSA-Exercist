@@ -48,6 +48,9 @@ dependencies {
 
     // MySQL Driver
     implementation 'mysql:mysql-connector-java:8.0.30'
+
+    // Redis
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 }
 
 dependencyManagement {

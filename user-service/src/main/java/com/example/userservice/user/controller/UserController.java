@@ -1,14 +1,16 @@
 package com.example.userservice.user.controller;
 
-import com.example.userservice.user.domain.User;
+import com.example.userservice.user.domain.MessageResponse;
+import com.example.userservice.user.domain.Response;
+import com.example.userservice.user.domain.dto.LoginResponse;
+import com.example.userservice.user.domain.dto.UserJoinRequest;
+import com.example.userservice.user.domain.dto.UserLoginRequest;
 import com.example.userservice.user.service.UserService;
-import com.example.userservice.user.util.JwtTokenUtil;
+import com.example.userservice.user.util.CookieUtils;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -16,30 +18,34 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/users")
 public class UserController {
 
-    private final AuthenticationManager authenticationManager;
-
-    private final JwtTokenUtil jwtTokenUtil;
-
     private final UserService userService;
-
-    @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody User loginRequest) {
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(loginRequest.getUsername(), loginRequest.getPassword()));
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String jwt = jwtTokenUtil.generateToken(loginRequest.getUsername());
-        return ResponseEntity.ok(jwt);
-    }
-
-    @PostMapping("/register")
-    public ResponseEntity<?> registerUser(@RequestBody User user) {
-        userService.saveUser(user);
-        return ResponseEntity.ok("User registered successfully");
-    }
 
     @GetMapping("/test")
     public ResponseEntity<?> test() {
         return ResponseEntity.ok("test 성공");
+    }
+
+
+    @PostMapping("/join")
+    public Response<MessageResponse> join(@RequestBody UserJoinRequest reqeust) {
+        MessageResponse response = userService.join(reqeust);
+        return Response.success(response);
+    }
+
+    @PostMapping("/login")
+    public Response<LoginResponse> login(@RequestBody UserLoginRequest customerLoginRequest, HttpServletRequest request,
+                                         HttpServletResponse response) {
+
+        LoginResponse loginResponse = userService.login(customerLoginRequest);
+
+        String accessToken = loginResponse.getAccessToken();
+        String refreshToken = loginResponse.getRefreshToken();
+
+
+        CookieUtils.addAccessTokenAtCookie(response, accessToken);
+
+        CookieUtils.addRefreshTokenAtCookie(response, refreshToken);
+
+        return Response.success(loginResponse);
     }
 }

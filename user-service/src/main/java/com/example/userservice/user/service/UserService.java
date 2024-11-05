@@ -3,23 +3,17 @@ package com.example.userservice.user.service;
 import com.example.userservice.user.config.redis.RedisDao;
 import com.example.userservice.user.domain.MessageResponse;
 import com.example.userservice.user.domain.User;
-import com.example.userservice.user.domain.dto.LoginResponse;
-import com.example.userservice.user.domain.dto.TokenRequest;
-import com.example.userservice.user.domain.dto.UserJoinRequest;
-import com.example.userservice.user.domain.dto.UserLoginRequest;
+import com.example.userservice.user.domain.dto.*;
 import com.example.userservice.user.repository.UserRepository;
 import com.example.userservice.user.util.JwtUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.UUID;
+
 import java.util.concurrent.TimeUnit;
 
 
@@ -64,7 +58,7 @@ public class UserService {
     }
 
     @Transactional
-    public LoginResponse login(UserLoginRequest request) {
+    public LoginTempResponse login(UserLoginRequest request) {
 
         User findUser = findUserByEmail(request.getEmail());
 
@@ -79,39 +73,30 @@ public class UserService {
             throw new RuntimeException();
         }
 
-        // 저장 형태 {"RT:test@test.com" , "refreshToken"}
-        redisDao.setValues("RT:" + findUser.getEmail(), refreshToken, refreshTokenMaxAge, TimeUnit.SECONDS);
+        // 저장 형태 {"RT:refreshToken" , "test@test.com"}
+        redisDao.setValues("RT:" + refreshToken, findUser.getEmail(), refreshTokenMaxAge, TimeUnit.SECONDS);
 
-        return new LoginResponse(accessToken, refreshToken);
+        return new LoginTempResponse(accessToken, refreshToken);
     }
 
-//    @Transactional
-//    public LoginResponse reissue(TokenRequest request, String email) {
-//
-//        Customer findCustomer = findCustomerByEmail(email);
-//
-//        if (jwtUtils.isExpired(request.getRefreshToken())) {
-//            throw new AppException(INVALID_TOKEN, INVALID_TOKEN.getMessage());
-//        }
-//
-//        String refreshToken = redisDao.getValues("RT:" + email);
-//
-//        if (ObjectUtils.isEmpty(refreshToken)) {
-//            throw new AppException(INVALID_REQUEST, INVALID_REQUEST.getMessage());
-//        }
-//        if (!refreshToken.equals(request.getRefreshToken())) {
-//            throw new AppException(INVALID_TOKEN, INVALID_TOKEN.getMessage());
-//        }
-//
-//        String newAccessToken = jwtUtils.createAccessToken(findCustomer.getEmail());
-//        String newRefreshToken = jwtUtils.createRefreshToken(findCustomer.getEmail());
-//
-//        // 저장 형태 {"RT:test@test.com" , "refreshToken"}
-//        redisDao.setValues("RT:" + findCustomer.getEmail(), newRefreshToken, refreshTokenMaxAge, TimeUnit.SECONDS);
-//
-//        return new LoginResponse(newAccessToken, newRefreshToken);
-//
-//    }
+    @Transactional
+    public LoginTempResponse reissue(String refreshToken) {
+        String email = redisDao.getValues("RT:" + refreshToken);
+
+        User findUser = findUserByEmail(email);
+
+        String newAccessToken = jwtUtils.createAccessToken(findUser.getEmail());
+        String newRefreshToken = jwtUtils.createRefreshToken(findUser.getEmail());
+
+        // Token 삭제
+        redisDao.deleteValues("RT:" + refreshToken);
+
+        // 저장 형태 {"RT:refreshToken" , "test@test.com"}
+        redisDao.setValues("RT:" + newRefreshToken, findUser.getEmail(), refreshTokenMaxAge, TimeUnit.SECONDS);
+
+        return new LoginTempResponse(newAccessToken,newRefreshToken);
+
+    }
 
     @Transactional
     public MessageResponse logout(TokenRequest request, String email) {

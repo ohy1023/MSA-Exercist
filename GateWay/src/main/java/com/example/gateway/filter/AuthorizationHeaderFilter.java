@@ -25,7 +25,7 @@ import java.security.Key;
 @Slf4j
 public class AuthorizationHeaderFilter extends AbstractGatewayFilterFactory<AuthorizationHeaderFilter.Config> {
 
-  private static final String BEARER_TYPE = "Bearer";
+  private static final String BEARER_TYPE = "Bearer ";
   private final Key key;
 
   public AuthorizationHeaderFilter(@Value("${jwt.secret}") String secretKey) {

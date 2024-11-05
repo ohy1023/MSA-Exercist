@@ -3,6 +3,7 @@ package com.example.userservice.user.controller;
 import com.example.userservice.user.domain.MessageResponse;
 import com.example.userservice.user.domain.Response;
 import com.example.userservice.user.domain.dto.LoginResponse;
+import com.example.userservice.user.domain.dto.LoginTempResponse;
 import com.example.userservice.user.domain.dto.UserJoinRequest;
 import com.example.userservice.user.domain.dto.UserLoginRequest;
 import com.example.userservice.user.service.UserService;
@@ -10,9 +11,14 @@ import com.example.userservice.user.util.CookieUtils;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
+
+@Slf4j
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/users")
@@ -21,10 +27,27 @@ public class UserController {
     private final UserService userService;
 
     @GetMapping("/test")
-    public ResponseEntity<?> test() {
+    public ResponseEntity<?> test(Authentication authentication) {
+        log.info("email : {}",authentication.getName());
         return ResponseEntity.ok("test 성공");
     }
 
+
+    @PostMapping("/refresh")
+    public Response<LoginResponse> refresh(HttpServletRequest request, HttpServletResponse response) {
+
+        Optional<String> optionalRefreshToken = CookieUtils.extractRefreshToken(request);
+
+        LoginTempResponse loginTempResponse = userService.reissue(optionalRefreshToken.get());
+
+        String accessToken = loginTempResponse.getAccessToken();
+
+        String refreshToken = loginTempResponse.getRefreshToken();
+
+        CookieUtils.addRefreshTokenAtCookie(response, refreshToken);
+
+        return Response.success(new LoginResponse(accessToken));
+    }
 
     @PostMapping("/join")
     public Response<MessageResponse> join(@RequestBody UserJoinRequest reqeust) {
@@ -36,16 +59,14 @@ public class UserController {
     public Response<LoginResponse> login(@RequestBody UserLoginRequest customerLoginRequest, HttpServletRequest request,
                                          HttpServletResponse response) {
 
-        LoginResponse loginResponse = userService.login(customerLoginRequest);
+        LoginTempResponse loginTempResponse = userService.login(customerLoginRequest);
 
-        String accessToken = loginResponse.getAccessToken();
-        String refreshToken = loginResponse.getRefreshToken();
+        String accessToken = loginTempResponse.getAccessToken();
 
-
-        CookieUtils.addAccessTokenAtCookie(response, accessToken);
+        String refreshToken = loginTempResponse.getRefreshToken();
 
         CookieUtils.addRefreshTokenAtCookie(response, refreshToken);
 
-        return Response.success(loginResponse);
+        return Response.success(new LoginResponse(accessToken));
     }
 }

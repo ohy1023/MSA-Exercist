@@ -1,0 +1,32 @@
+server:
+  port: 8888
+
+spring:
+  application:
+    name: config-service
+
+  cloud:
+    config:
+      server:
+        native:
+          search-locations: file:///C:/Users/ohy/Desktop/javaEx/EurekaTest
+        git:
+          uri: https://github.com/ohy1023/MSA-Exercist.git
+
+
+    bus:
+      enabled: true                 # Spring Cloud Bus ???
+      rabbitmq:
+        host: localhost             # RabbitMQ ???
+        port: 5672                  # RabbitMQ ??
+        username: guest             # RabbitMQ ????
+        password: guest             # RabbitMQ ????
+#          if private repository
+#          username: [your username]
+#          password: [your password]
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: bus-refresh        # ?? ???? ????? ???

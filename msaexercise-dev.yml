@@ -11,6 +11,3 @@ jwt:
 # For Cookie, Redis
 access-token-maxage: 10800 # 3시간 (sec)
 refresh-token-maxage: 1209600 # 2주 (sec)
-
-gateway:
-  ip: 172.30.1.29

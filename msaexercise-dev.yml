@@ -5,7 +5,7 @@ jwt:
     expiration: 10800000 # 3시간 (ms)
     header: Authorization
   refresh:
-    expiration: 10800000 # 2주 (ms)
+    expiration: 1209600000 # 2주 (ms)
     header: Authorization-refresh
 
 # For Cookie, Redis

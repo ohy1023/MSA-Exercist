@@ -52,9 +52,18 @@ dependencies {
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
+    // config
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+    // bootstrap
+    implementation 'org.springframework.cloud:spring-cloud-starter-bootstrap'
+
     // RabbitMQ
-    implementation 'org.springframework.boot:spring-boot-starter-amqp'
-    testImplementation 'org.springframework.amqp:spring-rabbit-test'
+//    implementation 'org.springframework.boot:spring-boot-starter-amqp'
+//    testImplementation 'org.springframework.amqp:spring-rabbit-test'
+
+    // actuator
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
 
 }
 

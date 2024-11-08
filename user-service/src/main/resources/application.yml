@@ -1,5 +1,5 @@
 server:
-  port: 8081
+  port: 0
 
 spring:
   application:
@@ -25,3 +25,19 @@ eureka:
     fetch-registry: true
     service-url:
       defaultZone: http://127.0.0.1:8761/eureka
+
+
+
+## JWT
+#jwt:
+#  secret: awfweoafjaweofnmawsweafaweffewfaeklfniowehfioweaowieaf
+#  access:
+#    expiration: 10800000 # 3시간 (ms)
+#    header: Authorization
+#  refresh:
+#    expiration: 1209600000 # 2주 (ms)
+#    header: Authorization-refresh
+#
+## For Cookie, Redis
+#access-token-maxage: 10800 # 3시간 (sec)
+#refresh-token-maxage: 1209600 # 2주 (sec)

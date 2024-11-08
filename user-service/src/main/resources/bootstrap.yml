@@ -1,17 +1,7 @@
 spring:
-  application:
-    name: config-server   # 클라이언트 서비스 이름
   cloud:
     config:
-      uri: http://localhost:8888    # Config 서버 URL
-      label: main                    # 사용할 Git 브랜치
+      uri: http://127.0.0.1:8888
       name: msaexercise
-    profiles:
-      active: dev
-    bus:
-      enabled: true                  # Bus 활성화
-      rabbitmq:
-        host: localhost              # RabbitMQ 호스트
-        port: 5672                   # RabbitMQ 포트
-        username: guest              # RabbitMQ 사용자명
-        password: guest              # RabbitMQ 비밀번호
+  profiles:
+    active: dev

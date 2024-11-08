@@ -12,6 +12,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.env.Environment;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,7 @@ import java.util.Optional;
 public class UserController {
 
     private final UserService userService;
+    private final Environment env;
 
     @GetMapping("/test")
     public ResponseEntity<?> test(Authentication authentication) {
@@ -68,5 +70,15 @@ public class UserController {
         CookieUtils.addRefreshTokenAtCookie(response, refreshToken);
 
         return Response.success(new LoginResponse(accessToken));
+    }
+
+    @GetMapping("/health_check")
+    public String status(Authentication authentication) {
+        log.info("email : {}",authentication.getName());
+        return String.format("It's Working in User Service"
+                + ", port(local.server.port) = " + env.getProperty("local.server.port")
+                + ", port(server.port) = " + env.getProperty("server.port")
+                + ", token secret = " + env.getProperty("jwt.secret")
+                + ", token expiration time = " + env.getProperty("jwt.access.expiration"));
     }
 }

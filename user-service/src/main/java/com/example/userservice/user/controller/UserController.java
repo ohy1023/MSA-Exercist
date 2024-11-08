@@ -79,6 +79,7 @@ public class UserController {
                 + ", port(local.server.port) = " + env.getProperty("local.server.port")
                 + ", port(server.port) = " + env.getProperty("server.port")
                 + ", token secret = " + env.getProperty("jwt.secret")
-                + ", token expiration time = " + env.getProperty("jwt.access.expiration"));
+                + ", token expiration time = " + env.getProperty("jwt.access.expiration")
+                + ", token refresh time = " + env.getProperty("jwt.refresh.expiration"));
     }
 }

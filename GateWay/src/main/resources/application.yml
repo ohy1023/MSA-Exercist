@@ -11,6 +11,11 @@ eureka:
 spring:
   application:
     name: apigateway-service
+  rabbitmq:
+    host: 127.0.0.1
+    port: 5672
+    username: guest
+    password: guest
   cloud:
     gateway:
       routes:
@@ -50,6 +55,12 @@ spring:
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/orders/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: refresh
 
 ## JWT
 #jwt:

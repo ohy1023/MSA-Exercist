@@ -11,11 +11,10 @@ eureka:
 spring:
   application:
     name: apigateway-service
-  rabbitmq:
-    host: 127.0.0.1
-    port: 5672
-    username: guest
-    password: guest
+  profiles:
+    active: local
+  config:
+    import: optional:configserver:http://localhost:8888
   cloud:
     gateway:
       routes:
@@ -55,23 +54,15 @@ spring:
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/orders/**
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
+# 클라이언트 코드에서 Actuator 설정
 management:
   endpoints:
     web:
       exposure:
-        include: refresh
-
-## JWT
-#jwt:
-#  secret: awfweoafjaweofnmawsweafaweffewfaeklfniowehfioweaowieaf
-#  access:
-#    expiration: 10800000 # 3시간 (ms)
-#    header: Authorization
-#  refresh:
-#    expiration: 1209600000 # 2주 (ms)
-#    header: Authorization-refresh
-#
-## For Cookie, Redis
-#access-token-maxage: 10800 # 3시간 (sec)
-#refresh-token-maxage: 1209600 # 2주 (sec)
+        include: "*"

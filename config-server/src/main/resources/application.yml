@@ -13,13 +13,17 @@ spring:
     config:
       server:
         git:
-          uri: https://github.com/ohy1023/MSA-Exercist.git
+          uri: https://github.com/ohy1023/config.git
+          default-label: main
+          search-paths: ConfigFiles
+          username: ohy1023
+          password: git token
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, busrefresh
+        include: refresh, health, beans, busrefresh # cloud bus refresh
 logging:
   level:
     com.example.configservice: DEBUG

@@ -50,6 +50,13 @@ spring:
             - Path=/users/**
           filters:
             - AuthorizationHeaderFilter
+
+        - id: face-service
+          uri: lb://FACE-SERVICE
+          predicates:
+            - Path=/faces/**
+          filters:
+            - AuthorizationHeaderFilter
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:

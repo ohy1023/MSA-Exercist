@@ -63,16 +63,19 @@ eureka_client.init(eureka_server="http://localhost:8761/eureka",
                    )
 
 # 모델 정의
-class Test(db.Model):
-    __tablename__ = "test"
-    name = db.Column(db.String(10), primary_key=True)
-    gender = db.Column(db.String(10))
-    phone = db.Column(db.String(50))
+class Face(db.Model):
+    __tablename__ = "face"
+    face_id = db.Column(db.BigInteger, primary_key=True, autoincrement=True, nullable=False)
+    vector = db.Column(db.Text, nullable=True)
+    face_img = db.Column(db.String(255), nullable=True)
+    ticket_id = db.Column(db.BigInteger, nullable=True)
+    event_date_id = db.Column(db.BigInteger, nullable=True)
 
-    def __init__(self, name, gender, phone):
-        self.name = name
-        self.gender = gender
-        self.phone = phone
+    def __init__(self, vector, face_img, ticket_id, event_date_id):
+        self.vector = vector
+        self.face_img = face_img
+        self.ticket_id = ticket_id
+        self.event_date_id = event_date_id
 
 @app.route('/faces/test', methods=['GET'])
 def test():
@@ -81,16 +84,16 @@ def test():
 # 엔드포인트 추가: 데이터베이스에 데이터 추가 테스트
 @app.route('/faces/add_face', methods=['POST'])
 def add_user():
-    new_user = Test(name="John1", gender="Male", phone="1234567890")
+    new_user = Face(vector="John1efeafdfae", face_img="Male", ticket_id=1, event_date_id=17700020)
     db.session.add(new_user)
     db.session.commit()
     return jsonify({"message": "User added successfully"}), 201
 
 # 엔드포인트 추가: 데이터베이스에서 사용자 조회
-@app.route('/faces/get_users', methods=['GET'])
+@app.route('/faces/get_faces', methods=['GET'])
 def get_users():
-    users = Test.query.all()
-    return jsonify([{"name": user.name, "gender": user.gender, "phone": user.phone} for user in users])
+    faces = Face.query.all()
+    return jsonify([{"face_id": face.face_id, "vector": face.vector, "face_img": face.face_img, "ticke_id": face.ticket_id, "event_date_id":face.event_date_id} for face in faces])
 
 if __name__ == '__main__':
     # Flask 앱 실행 시에만 RabbitMQ 리스너 스레드를 시작

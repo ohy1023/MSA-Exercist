@@ -105,7 +105,7 @@ def upload_face():
     encrypted_embedding = encrypt_vector(embedding)
 
     # DB 저장
-    new_face = Face(vector=encrypted_embedding, face_img="s3url", ticket_id=ticket_id, event_date_id=event_date_id)
+    new_face = Face(vector=encrypted_embedding, face_img=file.filename, ticket_id=ticket_id, event_date_id=event_date_id)
     db.session.add(new_face)
     db.session.commit()
 

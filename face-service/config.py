@@ -1,7 +1,5 @@
 import requests
 
-
-
 # 초기 설정 로드 함수
 def load_config_from_server():
     # Config Server URL 설정
@@ -13,7 +11,7 @@ def load_config_from_server():
         
         # 필요한 설정 정보 추출
         property_sources = config_data.get("propertySources", [])
-        config = {"mysql": {}}
+        config = {"mysql": {}, "encryption": {}}
 
         for source in property_sources:
             source_data = source["source"]
@@ -22,7 +20,10 @@ def load_config_from_server():
                 config["mysql"]["url"] = source_data["flask.mysql.url"]
             if "flask.mysql.password" in source_data:
                 config["mysql"]["password"] = source_data["flask.mysql.password"]
-        
+            # Encryption Key 설정
+            if "encryption.secret_key" in source_data:
+                config["encryption"]["secret_key"] = source_data["encryption.secret_key"]
+
         print("Configuration reloaded:", config)
         return config
     except requests.RequestException as e:

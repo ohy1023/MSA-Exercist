@@ -1,9 +1,12 @@
-from flask import Flask, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from config import load_config_from_server
 import py_eureka_client.eureka_client as eureka_client
 import pika
 import threading
+import numpy as np
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from config import load_config_from_server
+from face_utils import get_face_embedding, cosine_similarity
+from vector_security_utils import encrypt_vector, decrypt_vector
 
 app = Flask(__name__)
 
@@ -66,7 +69,7 @@ eureka_client.init(eureka_server="http://localhost:8761/eureka",
 class Face(db.Model):
     __tablename__ = "face"
     face_id = db.Column(db.BigInteger, primary_key=True, autoincrement=True, nullable=False)
-    vector = db.Column(db.Text, nullable=True)
+    vector = db.Column(db.Text, nullable=True)  # 암호화된 문자열로 저장
     face_img = db.Column(db.String(255), nullable=True)
     ticket_id = db.Column(db.BigInteger, nullable=True)
     event_date_id = db.Column(db.BigInteger, nullable=True)
@@ -81,19 +84,77 @@ class Face(db.Model):
 def test():
     return "test 성공"
 
-# 엔드포인트 추가: 데이터베이스에 데이터 추가 테스트
-@app.route('/faces/add_face', methods=['POST'])
-def add_user():
-    new_user = Face(vector="John1efeafdfae", face_img="Male", ticket_id=1, event_date_id=17700020)
-    db.session.add(new_user)
-    db.session.commit()
-    return jsonify({"message": "User added successfully"}), 201
+# 얼굴 벡터를 DB에 저장하는 엔드포인트
+@app.route('/faces/upload', methods=['POST'])
+def upload_face():
+    # multipart/form-data 형식에서 파일과 추가 데이터를 수신
+    file = request.files.get('file')
+    ticket_id = request.form.get('ticket_id')
+    event_date_id = request.form.get('event_date_id')
 
-# 엔드포인트 추가: 데이터베이스에서 사용자 조회
-@app.route('/faces/get_faces', methods=['GET'])
-def get_users():
-    faces = Face.query.all()
-    return jsonify([{"face_id": face.face_id, "vector": face.vector, "face_img": face.face_img, "ticke_id": face.ticket_id, "event_date_id":face.event_date_id} for face in faces])
+    if not file:
+        return jsonify({"error": "No file part in the request"}), 400
+
+    # 얼굴 벡터 추출
+    image_data = file.read()
+    embedding = get_face_embedding(image_data)
+    if embedding is None:
+        return jsonify({"error": "No face detected"}), 400
+
+    # 벡터 암호화
+    encrypted_embedding = encrypt_vector(embedding)
+
+    # DB 저장
+    new_face = Face(vector=encrypted_embedding, face_img="s3url", ticket_id=ticket_id, event_date_id=event_date_id)
+    db.session.add(new_face)
+    db.session.commit()
+
+    return jsonify({"message": "Face embedding extracted and stored successfully"}), 200
+
+# 입력 얼굴과 DB 얼굴 벡터 비교 엔드포인트
+@app.route('/faces/match', methods=['POST'])
+def match_face():
+    file = request.files.get('file')
+    event_date_id = request.form.get('event_date_id')
+
+    if not file or not event_date_id:
+        return jsonify({"error": "File or event_date_id missing"}), 400
+
+    image_data = file.read()
+    embedding = get_face_embedding(image_data)
+    if embedding is None:
+        return jsonify({"error": "No face detected"}), 400
+
+    # event_date_id가 일치하는 Face 데이터를 조회
+    faces = Face.query.filter_by(event_date_id=event_date_id).all()
+
+    if not faces:
+        return jsonify({"error": "No faces found for the given event_date_id"}), 404
+    
+    max_similarity = -1
+    best_match = None
+
+    for face in faces:
+        # DB에서 암호화된 벡터를 복호화하여 NumPy 배열로 변환
+        decrypted_embedding = decrypt_vector(face.vector)
+        similarity = cosine_similarity(embedding, decrypted_embedding)
+
+        if similarity > max_similarity:
+            max_similarity = similarity
+            best_match = {
+                "face_id": face.face_id,
+                "face_img": face.face_img,
+                "ticket_id": face.ticket_id,
+                "event_date_id": face.event_date_id,
+                "similarity": float(similarity)
+            }
+
+    # 임계값 설정
+    threshold = 0.4
+    if best_match and max_similarity > threshold:
+        return jsonify({"match": best_match}), 200
+    else:
+        return jsonify({"message": "No matching face found"}), 404
 
 if __name__ == '__main__':
     # Flask 앱 실행 시에만 RabbitMQ 리스너 스레드를 시작

@@ -2,6 +2,7 @@ package com.example.userservice.user.controller;
 
 import com.example.userservice.user.domain.MessageResponse;
 import com.example.userservice.user.domain.Response;
+import com.example.userservice.user.domain.User;
 import com.example.userservice.user.domain.dto.LoginResponse;
 import com.example.userservice.user.domain.dto.LoginTempResponse;
 import com.example.userservice.user.domain.dto.UserJoinRequest;
@@ -32,6 +33,12 @@ public class UserController {
     public ResponseEntity<?> test(Authentication authentication) {
         log.info("email : {}",authentication.getName());
         return ResponseEntity.ok("test 성공");
+    }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<User> getUserById(@PathVariable Long userId) {
+        User user = userService.getUserById(userId);
+        return ResponseEntity.ok(user);
     }
 
 

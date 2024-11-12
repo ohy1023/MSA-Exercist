@@ -34,6 +34,23 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+
+    // MySQL Driver
+    implementation 'mysql:mysql-connector-java:8.0.30'
+
+    // Spring Data JPA
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
+    implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
+
+    // config
+    implementation 'org.springframework.cloud:spring-cloud-starter-config'
+
+    // RabbitMQ
+    implementation 'org.springframework.cloud:spring-cloud-starter-bus-amqp'
+
+    // actuator
+    implementation('org.springframework.boot:spring-boot-starter-actuator')
 }
 
 dependencyManagement {

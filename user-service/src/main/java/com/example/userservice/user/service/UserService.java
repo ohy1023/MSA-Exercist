@@ -133,4 +133,9 @@ public class UserService {
     private boolean mismatchPassword(String rawPassword, String encodedPassword) {
         return !encoder.matches(rawPassword, encodedPassword);
     }
+
+    public User getUserById(Long userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new RuntimeException("User not found with ID: " + userId));
+    }
 }

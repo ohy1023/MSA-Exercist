@@ -57,10 +57,20 @@ spring:
             - Path=/faces/**
           filters:
             - AuthorizationHeaderFilter
+
         - id: order-service
           uri: lb://ORDER-SERVICE
           predicates:
             - Path=/orders/**
+          filters:
+            - AuthorizationHeaderFilter
+
+        - id: catalog-service
+          uri: lb://CATALOG-SERVICE
+          predicates:
+            - Path=/catalogs/**
+          filters:
+            - AuthorizationHeaderFilter
   rabbitmq:
     host: localhost
     port: 5672

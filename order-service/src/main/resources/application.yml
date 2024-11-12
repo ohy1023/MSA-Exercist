@@ -4,10 +4,32 @@ server:
 spring:
   application:
     name: order-service
+  profiles:
+    active: local
+  config:
+    import: optional:configserver:http://localhost:8888
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
 
 eureka:
+  instance:
+    instance-id: ${spring.cloud.client.hostname}:${spring.application.instance_id:${random.value}}
   client:
     register-with-eureka: true
     fetch-registry: true
     service-url:
       defaultZone: http://127.0.0.1:8761/eureka
+
+# 클라이언트 코드에서 Actuator 설정
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
